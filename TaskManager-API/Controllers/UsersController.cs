@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager_API.Data;
 using TaskManager_API.Models.Domain;
-using TaskManager_API.Dtos;
+using TaskManager_API.DTOs;
 
 namespace TaskManager_API.Controllers
 {
@@ -25,11 +25,44 @@ namespace TaskManager_API.Controllers
         {
             var users = await _context.Users.ToListAsync();
 
+            var usersDTO = users.Select(user => new UsersDto
+            {
+                Name = user.Name,
+                LastName = user.LastName,
+                Email = user.Email,
+                Role = user.Role
+            }).ToList();
+
             return Ok(new
             {
                 Sucess = true,
                 Message = "Users retrieved sucessfully",
-                Data = users
+                Data = usersDTO
+            });
+        }
+
+        [HttpDelete("{id:guid}")]
+
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = $"User with ID {id} not found."
+                });
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Success = true,
+                Message = $"User with ID {id} deleted successfully."
             });
         }
 
@@ -60,6 +93,7 @@ namespace TaskManager_API.Controllers
                 Data = user
             });
         }
-        }
+
+    }  
 
 }

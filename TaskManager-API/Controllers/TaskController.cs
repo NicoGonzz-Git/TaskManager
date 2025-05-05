@@ -23,16 +23,9 @@ namespace TaskManager_API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTask([FromBody] TaskItem task)
         {
-            if (task == null || string.IsNullOrWhiteSpace(task.Title))
-                return BadRequest("Invalid task data.");
-
-            var assignedUser = await _userContext.Users.FirstOrDefaultAsync(u => u.Id == task.AssignedUserId);
-            if (assignedUser == null)
-                return NotFound($"No user found with ID {task.AssignedUserId}");
 
             task.Id = Guid.NewGuid();
             task.CreatedDate = DateTime.UtcNow;
-            task.User = assignedUser;
 
             await _context.Tasks.AddAsync(task);
             await _context.SaveChangesAsync();

@@ -5,14 +5,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddDbContext<TaskManager_API.Data.TaskContext>(options =>
-    options.UseCosmos(
-        accountEndpoint: builder.Configuration["CosmosDb:Endpoint"],
-        accountKey: builder.Configuration["CosmosDb:Key"],
-        databaseName: builder.Configuration["CosmosDb:Database"]
-    )
-);
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

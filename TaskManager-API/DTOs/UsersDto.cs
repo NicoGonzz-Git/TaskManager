@@ -1,12 +1,13 @@
 ﻿namespace TaskManager_API.DTOs
 {
-    public class CreateUser
+    public class UsersDto
     {
         public string Name { get; set; }
-        public string LastName { get; set; }
-        public string Email { get; set; }
-        public string Role { get; set; }
 
-        public string? UserImageURL { get; set; }
+        public string LastName { get; set; }
+
+        public string Email { get; set; }
+
+        public string Role { get; set; }
     }
 }
