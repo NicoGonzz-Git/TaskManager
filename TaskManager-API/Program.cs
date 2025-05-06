@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TaskManager_API.Data;
+using TaskManager_API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,8 @@ builder.Services.AddDbContext<UserContext>(options =>
         builder.Configuration["CosmosDb:Key"],
         builder.Configuration["CosmosDb:Database"]
     ));
+
+builder.Services.AddScoped<TaskManager_API.Services.TaskUserService>();
 
 var app = builder.Build();
 

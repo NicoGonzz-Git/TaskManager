@@ -94,6 +94,43 @@ namespace TaskManager_API.Controllers
             });
         }
 
-    }  
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUser request)
+        {
+            var user = await _context.Users.FindAsync(id);
 
+            if (user == null)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = $"User with ID {id} not found."
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Name))
+                user.Name = request.Name;
+
+            if (!string.IsNullOrWhiteSpace(request.LastName))
+                user.LastName = request.LastName;
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+                user.Email = request.Email;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Success = true,
+                Message = $"User updated successfully.",
+                Data = new
+                {
+                    user.Name,
+                    user.LastName,
+                    user.Email,
+                }
+            });
+        }
+
+    }
 }
