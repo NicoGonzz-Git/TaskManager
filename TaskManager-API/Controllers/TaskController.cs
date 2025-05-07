@@ -26,33 +26,40 @@ namespace TaskManager_API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateTask([FromBody] CreateTask createTask)
         {
-            try
+            if (ModelState.IsValid)
             {
-                var createdTask = await _taskService.CreateTaskAsync(createTask);
+                try
+                {
+                    var createdTask = await _taskService.CreateTaskAsync(createTask);
 
-                return Ok(new
+                    return Ok(new
+                    {
+                        Success = true,
+                        Message = "Task created successfully.",
+                        Data = createdTask
+                    });
+                }
+                catch (KeyNotFoundException ex)
                 {
-                    Success = true,
-                    Message = "Task created successfully.",
-                    Data = createdTask
-                });
+                    return NotFound(new
+                    {
+                        Success = false,
+                        Message = ex.Message
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating task");
+                    return StatusCode(500, new
+                    {
+                        Success = false,
+                        Message = "An error occurred while creating the task."
+                    });
+                }
             }
-            catch (KeyNotFoundException ex)
+            else
             {
-                return NotFound(new
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating task");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "An error occurred while creating the task."
-                });
+                return BadRequest(ModelState);
             }
         }
 

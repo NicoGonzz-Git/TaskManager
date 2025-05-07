@@ -27,10 +27,11 @@ namespace TaskManager_API.Controllers
 
             var usersDTO = users.Select(user => new UsersDto
             {
+                Id = user.Id,
                 Name = user.Name,
                 LastName = user.LastName,
                 Email = user.Email,
-                Role = user.Role
+                Role = user.Role,
             }).ToList();
 
             return Ok(new
@@ -69,10 +70,11 @@ namespace TaskManager_API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUser request)
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Email))
-                return BadRequest("Invalid user data.");
+            if (ModelState.IsValid) {
+                if (request == null || string.IsNullOrWhiteSpace(request.Email))
+                    return BadRequest("Invalid user data.");
 
-            var user = new User
+                var user = new User
             {
                 Id = Guid.NewGuid(),
                 Name = request.Name,
@@ -83,15 +85,20 @@ namespace TaskManager_API.Controllers
                 UserImageURL = request.UserImageURL
             };
 
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
+                await _context.Users.AddAsync(user);
+                await _context.SaveChangesAsync();
 
-            return Ok(new
+                return Ok(new
             {
                 Success = true,
                 Message = "User created successfully.",
                 Data = user
             });
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         [HttpPut("{id:guid}")]
