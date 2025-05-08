@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TaskManager.Mappings;
 using TaskManager_API.Data;
 using TaskManager_API.Services;
 
@@ -24,6 +25,7 @@ builder.Services.AddDbContext<UserContext>(options =>
     ));
 
 builder.Services.AddScoped<TaskManager_API.Services.TaskUserService>();
+builder.Services.AddAutoMapper(typeof(TaskMapperProfile).Assembly);
 
 var app = builder.Build();
 

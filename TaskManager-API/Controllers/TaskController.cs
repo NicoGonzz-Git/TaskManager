@@ -2,6 +2,8 @@
 using TaskManager_API.Data;
 using TaskManager_API.Services;
 using TaskManager_API.DTOs;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace TaskManager_API.Controllers
 {
@@ -12,15 +14,18 @@ namespace TaskManager_API.Controllers
         private readonly TaskContext _context;
         private readonly TaskUserService _taskService;
         private readonly ILogger<TasksController> _logger;
+        private readonly IMapper _mapper;
 
         public TasksController(
             TaskContext context,
             TaskUserService taskService,
-            ILogger<TasksController> logger)
+            ILogger<TasksController> logger,
+            IMapper mapper)
         {
             _context = context;
             _taskService = taskService;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpPost]
@@ -31,12 +36,13 @@ namespace TaskManager_API.Controllers
                 try
                 {
                     var createdTask = await _taskService.CreateTaskAsync(createTask);
+                    var taskDto = _mapper.Map<TasksDto>(createdTask);
 
                     return Ok(new
                     {
                         Success = true,
                         Message = "Task created successfully.",
-                        Data = createdTask
+                        Data = taskDto
                     });
                 }
                 catch (KeyNotFoundException ex)
@@ -53,7 +59,7 @@ namespace TaskManager_API.Controllers
                     return StatusCode(500, new
                     {
                         Success = false,
-                        Message = "An error occurred while creating the task."
+                        Message = ex.Message
                     });
                 }
             }
@@ -88,11 +94,43 @@ namespace TaskManager_API.Controllers
         public async Task<IActionResult> GetAllTasks()
         {
             var tasks = await _taskService.GetAllTasksAsync();
+            var taskDtos = _mapper.Map<IEnumerable<TasksDto>>(tasks);
 
             return Ok(new
             {
                 Success = true,
-                Data = tasks
+                Data = taskDtos
+            });
+        }
+
+        [HttpGet("pagination")]
+        public async Task<IActionResult> GetAllTasksPagination(int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var totalTasks = await _context.Tasks.CountAsync();
+
+            var totalPages = (int)Math.Ceiling(totalTasks / (double)pageSize);
+
+            var tasks = await _context.Tasks
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var tasksDto = _mapper.Map<IEnumerable<TasksDto>>(tasks);
+
+            return Ok(new
+            {
+                Success = true,
+                Data = tasksDto,
+                Pagination = new
+                {
+                    TotalItems = totalTasks,
+                    TotalPages = totalPages,
+                    CurrentPage = page,
+                    PageSize = pageSize
+                }
             });
         }
 
@@ -100,6 +138,7 @@ namespace TaskManager_API.Controllers
         public async Task<IActionResult> UpdateTask(Guid id, [FromBody] UpdateTask taskUpdate)
         {
             var task = await _context.Tasks.FindAsync(id);
+
             if (task == null)
             {
                 return NotFound(new
@@ -109,9 +148,7 @@ namespace TaskManager_API.Controllers
                 });
             }
 
-            task.Title = taskUpdate.Title;
-            task.Description = taskUpdate.Description;
-            task.AssignedUserId = taskUpdate.AssignedUserId;
+            _mapper.Map(taskUpdate, task);
 
             await _context.SaveChangesAsync();
 
