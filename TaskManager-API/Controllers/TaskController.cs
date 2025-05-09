@@ -4,11 +4,13 @@ using TaskManager_API.Services;
 using TaskManager_API.DTOs;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TaskManager_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize()]
     public class TasksController : ControllerBase
     {
         private readonly TaskContext _context;

@@ -3,36 +3,34 @@ using Microsoft.EntityFrameworkCore;
 using TaskManager_API.Data;
 using TaskManager_API.Models.Domain;
 using TaskManager_API.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.Identity.Web.Resource;
+using AutoMapper;
 
 namespace TaskManager_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize()]
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;
         private readonly ILogger<UsersController> _logger;
+        private readonly IMapper _mapper;
 
-        public UsersController(UserContext context, ILogger<UsersController> logger)
+        public UsersController(UserContext context, ILogger<UsersController> logger, IMapper mapper)
         {
             _context = context;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet]
-
         public async Task<IActionResult> GetAll()
         {
             var users = await _context.Users.ToListAsync();
-
-            var usersDTO = users.Select(user => new UsersDto
-            {
-                Id = user.Id,
-                Name = user.Name,
-                LastName = user.LastName,
-                Email = user.Email,
-                Role = user.Role,
-            }).ToList();
+            var usersDTO = _mapper.Map<List<UsersDto>>(users);
 
             return Ok(new
             {
@@ -43,7 +41,6 @@ namespace TaskManager_API.Controllers
         }
 
         [HttpDelete("{id:guid}")]
-
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -70,35 +67,24 @@ namespace TaskManager_API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUser request)
         {
-            if (ModelState.IsValid) {
-                if (request == null || string.IsNullOrWhiteSpace(request.Email))
-                    return BadRequest("Invalid user data.");
+            if (!ModelState.IsValid || request == null || string.IsNullOrWhiteSpace(request.Email))
+                return BadRequest("Invalid user data.");
 
-                var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Name = request.Name,
-                LastName = request.LastName,
-                Email = request.Email,
-                Role = request.Role,
-                CreatedDate = DateTime.UtcNow,
-                UserImageURL = request.UserImageURL
-            };
+            var user = _mapper.Map<User>(request);
+            user.Id = Guid.NewGuid();
+            user.CreatedDate = DateTime.UtcNow;
 
-                await _context.Users.AddAsync(user);
-                await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
 
-                return Ok(new
+            var userDto = _mapper.Map<UsersDto>(user);
+
+            return Ok(new
             {
                 Success = true,
                 Message = "User created successfully.",
-                Data = user
+                Data = userDto
             });
-            }
-            else
-            {
-                return BadRequest(ModelState);
-            }
         }
 
         [HttpPut("{id:guid}")]
@@ -115,29 +101,17 @@ namespace TaskManager_API.Controllers
                 });
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Name))
-                user.Name = request.Name;
-
-            if (!string.IsNullOrWhiteSpace(request.LastName))
-                user.LastName = request.LastName;
-
-            if (!string.IsNullOrWhiteSpace(request.Email))
-                user.Email = request.Email;
-
+            _mapper.Map(request, user);
             await _context.SaveChangesAsync();
+
+            var updatedUserDto = _mapper.Map<UsersDto>(user);
 
             return Ok(new
             {
                 Success = true,
                 Message = $"User updated successfully.",
-                Data = new
-                {
-                    user.Name,
-                    user.LastName,
-                    user.Email,
-                }
+                Data = updatedUserDto
             });
         }
-
     }
 }
