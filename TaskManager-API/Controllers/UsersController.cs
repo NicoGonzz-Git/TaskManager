@@ -12,7 +12,7 @@ namespace TaskManager_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize()]
+    [Authorize(Roles = "admin")]
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;

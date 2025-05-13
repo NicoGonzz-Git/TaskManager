@@ -5,6 +5,7 @@ using TaskManager_API.DTOs;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace TaskManager_API.Controllers
 {
@@ -17,7 +18,6 @@ namespace TaskManager_API.Controllers
         private readonly TaskUserService _taskService;
         private readonly ILogger<TasksController> _logger;
         private readonly IMapper _mapper;
-
         public TasksController(
             TaskContext context,
             TaskUserService taskService,
@@ -93,16 +93,36 @@ namespace TaskManager_API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin,User")]
         public async Task<IActionResult> GetAllTasks()
         {
-            var tasks = await _taskService.GetAllTasksAsync();
-            var taskDtos = _mapper.Map<IEnumerable<TasksDto>>(tasks);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userRole = User.IsInRole("admin") ? "admin" : "User";
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
 
-            return Ok(new
+            try
             {
-                Success = true,
-                Data = taskDtos
-            });
+                if (userRole == "admin")
+                {
+                    var allTasks = await _taskService.GetAllTasksAsync();
+                    return Ok(new { Success = true, Data = allTasks });
+                }
+                else
+                {
+                    var userTasks = await _taskService.GetTasksByUserEmailAsync(userEmail);
+                    var taskDtos = _mapper.Map<IEnumerable<TasksDto>>(userTasks);
+                    return Ok(new { Success = true, Data = taskDtos });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving tasks");
+                return StatusCode(500, new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
         }
 
         [HttpGet("pagination")]

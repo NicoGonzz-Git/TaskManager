@@ -18,6 +18,36 @@ namespace TaskManager_API.Services
             _logger = logger;
         }
 
+        public async Task<IEnumerable<TaskItem>> GetTasksByUserEmailAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                _logger.LogWarning("Attempted to get tasks with null or empty email");
+                return new List<TaskItem>();
+            }
+
+            try
+            {
+                var user = await _userContext.Users
+                    .FirstOrDefaultAsync(u => u.Email == email);
+
+                if (user == null)
+                {
+                    _logger.LogWarning($"User with email {email} not found");
+                    return new List<TaskItem>();
+                }
+
+                return await _taskContext.Tasks
+                    .Where(t => t.AssignedUserId == user.Id)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting tasks for user with email {email}");
+                throw;
+            }
+        }
+
         public async Task<List<TasksDto>> GetAllTasksAsync()
         {
             var tasks = await _taskContext.Tasks.ToListAsync();
