@@ -11,5 +11,7 @@
         public string UserLastName { get; set; }
         public string UserEmail { get; set; }
         public string UserImageURL { get; set; }
+        public string Priority { get; set; }
+
     }
 }

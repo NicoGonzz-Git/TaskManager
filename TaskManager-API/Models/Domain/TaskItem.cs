@@ -14,6 +14,8 @@
 
         public DateTime CreatedDate { get; set; }
 
+        public string Priority { get; set; }
+
         public string? UserImageURL { get; set; }
 
         //Navigation properties

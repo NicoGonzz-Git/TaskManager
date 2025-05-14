@@ -2,6 +2,7 @@
 using TaskManager_API.Data;
 using TaskManager_API.Models.Domain;
 using TaskManager_API.DTOs;
+using System.Threading.Tasks;
 
 namespace TaskManager_API.Services
 {
@@ -71,7 +72,8 @@ namespace TaskManager_API.Services
                     UserName = user?.Name ?? "",
                     UserLastName = user?.LastName ?? "",
                     UserEmail = user?.Email ?? "",
-                    UserImageURL = user?.UserImageURL ?? ""
+                    UserImageURL = user?.UserImageURL ?? "",
+                    Priority= task.Priority
                 };
             }).ToList();
 
@@ -110,8 +112,9 @@ namespace TaskManager_API.Services
                 Description = createTask.Description,
                 AssignedUserId = createTask.AssignedUserId,
                 Role = createTask.Role,
-                CreatedDate = DateTime.UtcNow,
-                UserImageURL = user.UserImageURL
+                CreatedDate = createTask.CreatedDate,
+                UserImageURL = user.UserImageURL,
+                Priority = createTask.Priority
             };
 
             await _taskContext.Tasks.AddAsync(taskItem);
@@ -128,7 +131,8 @@ namespace TaskManager_API.Services
                 UserName = user.Name,
                 UserLastName = user.LastName,
                 UserEmail = user.Email,
-                UserImageURL = user.UserImageURL
+                UserImageURL = user.UserImageURL,
+                Priority = taskItem.Priority
             };
         }
     }
