@@ -12,7 +12,6 @@ namespace TaskManager_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "admin")]
     public class UsersController : ControllerBase
     {
         private readonly UserContext _context;
@@ -27,6 +26,7 @@ namespace TaskManager_API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _context.Users.ToListAsync();
@@ -41,6 +41,7 @@ namespace TaskManager_API.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var user = await _context.Users.FindAsync(id);
@@ -65,6 +66,7 @@ namespace TaskManager_API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUser request)
         {
             if (!ModelState.IsValid || request == null || string.IsNullOrWhiteSpace(request.Email))
@@ -88,6 +90,7 @@ namespace TaskManager_API.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = "admin")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUser request)
         {
             var user = await _context.Users.FindAsync(id);
