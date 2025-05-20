@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:3000") 
+                .WithOrigins("http://localhost:3000", "https://jolly-water-0bef9e71e.6.azurestaticapps.net") 
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials(); 
